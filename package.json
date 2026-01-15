@@ -1,0 +1,39 @@
+{
+  "name": "subtree.js",
+  "version": "1.0.0",
+  "description": "State manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkubiv/subtree.js.git"
+  },
+  "keywords": [
+    "state",
+    "observer",
+    "subtree"
+  ],
+  "author": "Volodymyr Kubiv",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vkubiv/subtree.js/issues"
+  },
+  "homepage": "https://github.com/vkubiv/subtree.js#readme",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0"
+  }
+}
