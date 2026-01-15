@@ -1,5 +1,3 @@
-
-
 export interface Listenable {
   addListener(listener: () => void): void;
   removeListener(listener: () => void): void;
@@ -53,7 +51,7 @@ export class Rx<T> extends ChangeNotifier implements ValueListenable<T> {
     return this._value;
   }
 
-  get value(): void {
+  get value(): T {
     throw new Error("Use 'snapshot' to get the value of Rx in controller or `observer.watch`" +
       " to get value and subscribe to changes in react component.");
   }
