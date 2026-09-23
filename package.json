@@ -1,39 +1,38 @@
 {
-  "name": "subtree.js",
-  "version": "1.0.0",
-  "description": "State manager",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "subtree-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "subtree.js, trunk.js and operation-result.js: a state-management and application-structure stack for TypeScript / React",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vkubiv/subtree.js.git"
   },
-  "keywords": [
-    "state",
-    "observer",
-    "subtree"
-  ],
   "author": "Volodymyr Kubiv",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/vkubiv/subtree.js/issues"
-  },
-  "homepage": "https://github.com/vkubiv/subtree.js#readme",
-  "files": [
-    "dist"
-  ],
-  "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
-  },
   "devDependencies": {
-    "typescript": "^4.9.5",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0"
+    "@biomejs/biome": "^2.4.16",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
   }
 }

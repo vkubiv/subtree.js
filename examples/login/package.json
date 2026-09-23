@@ -1,0 +1,25 @@
+{
+  "name": "example-login",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Port of subtree/full_examples/flutter_login: a fake backend-client with Result everywhere, AuthHandler with re-authentication, two flows, one section, tests at every level.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "operation-result.js": "^1.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.0.0",
+    "subtree.js": "^2.0.0-alpha.0",
+    "trunk.js": "^1.0.0-alpha.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}

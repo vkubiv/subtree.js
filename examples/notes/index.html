@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>subtree.js: notes example</title>
+    <style>
+      :root { font-family: system-ui, sans-serif; color: #1f2933; background: #f5f7fa; }
+      body { margin: 0; }
+      main.page { max-width: 32rem; margin: 3rem auto; padding: 0 1rem; }
+      h1 { font-size: 1.5rem; }
+      label { display: block; margin: 0.75rem 0 0.25rem; }
+      input, textarea { width: 100%; box-sizing: border-box; padding: 0.5rem; font: inherit; }
+      button { margin: 0.75rem 0.5rem 0 0; padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
+      button:disabled { cursor: default; opacity: 0.5; }
+      button.link { background: none; border: none; padding: 0; margin: 0; color: #0b57d0; text-align: left; }
+      ul.notes { list-style: none; padding: 0; }
+      ul.notes li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #d9e2ec; }
+      .error { color: #b00020; }
+      .hint { color: #52606d; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

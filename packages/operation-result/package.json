@@ -1,0 +1,39 @@
+{
+  "name": "operation-result.js",
+  "version": "1.0.0",
+  "description": "Typed expected errors: Result<T, E> with a union of error classes, and the helpers to read, forward and unwrap it.",
+  "keywords": [
+    "result",
+    "either",
+    "errors",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Volodymyr Kubiv",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkubiv/subtree.js.git",
+    "directory": "packages/operation-result"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  }
+}

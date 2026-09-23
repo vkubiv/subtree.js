@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "paths": {
+      "subtree.js": ["../../packages/subtree/src/index.ts"],
+      "subtree.js/core": ["../../packages/subtree/src/core/index.ts"],
+      "subtree.js/react": ["../../packages/subtree/src/react/index.ts"],
+      "trunk.js": ["../../packages/trunk/src/index.ts"],
+      "operation-result.js": ["../../packages/operation-result/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

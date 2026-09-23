@@ -1,0 +1,25 @@
+{
+  "name": "example-notes",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Port of subtree/full_examples/notes_app: a list and an editor, a repository mirrored into page state with sync, ops over a fake API, a route parameter as controller identity.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "operation-result.js": "^1.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.0.0",
+    "subtree.js": "^2.0.0-alpha.0",
+    "trunk.js": "^1.0.0-alpha.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
