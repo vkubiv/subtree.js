@@ -25,7 +25,7 @@ An app is two layers plus a client for the backend:
 
 ```
 +---------------------------------------------------------------------------+
-|  UI layer   (src/flows/**)                                                |
+|  UI layer   (src/pages/**, src/flows/**)                                  |
 |                                                                           |
 |   Flow  --builds-->  <Subtree controller={...}>  <Page/>  </Subtree>      |
 |                            |                                              |
@@ -174,6 +174,12 @@ Return shape:
 * `AsyncResult<T, E>` when the caller must handle a known failure.
 * `Promise<void>` for best-effort work that reports its outcome by writing to a repository.
 
+The client (or one API group) and the session object are separate named fields like every
+other dependency: `{ userApi, authHandler, ... }` or `{ userApi, loggedinUser, ... }`. Do
+not bundle them into an `Api` object, and do not put a `withSession` helper in front of
+`callApi`. The field an op declares says what it does with a 401: `authHandler` retries it
+after re-authentication, `loggedinUser` means the op handles it itself, or reads a stream.
+
 Grouping: one module per feature (`balance-ops.ts`, `signin-ops.ts`). A namespace object
 (`export const BalanceOps = { fetchBalance, ... }`) is optional; module imports are enough.
 
@@ -208,9 +214,16 @@ Constructed once at startup, placed in the app dependencies, started/stopped by 
   auth-failed `Result` instead, so the caller stays in the Result model.
   (This is the btb-neo design. The admin_panel version that returns a never-resolving
   promise is not the target.)
-* Two ways to call, both valid: `authHandler.callApi` for user-facing reads/writes that
+* The function given to `callApi` is re-run from the start after re-authentication, so
+  it is one call, or a block that is safe to replay. Several writes are several
+  `callApi`s, each retried on its own; a loop over N rejects wraps each reject, not the
+  loop, so a retry never repeats one that went through.
+* `isAuthFailure` on the options decides which error means "not authenticated"; the
+  default is `instanceof ApiNotAuthorized`. A backend client with its own 401 class sets it.
+* Three ways to call, all valid: `authHandler.callApi` for user-facing reads/writes that
   should survive a 401; `loggedinUser.authorizeCall()` for background/best-effort code that
-  handles auth failure itself.
+  handles auth failure itself; `loggedinUser.authorizeCall()` again for a stream or anything
+  that is not a `Result`, since there is no single answer to retry.
 * In-flight flow state (`SigningInUser`) is created once per flow and threaded through the
   pages that need it. Never global.
 
@@ -241,17 +254,25 @@ with a plain union: `Result<T, ApiNotAuthorized | InvalidFormField>`.
 
 ---
 
-## 4. UI layer: `src/flows/`
+## 4. UI layer: `src/pages/` and `src/flows/`
 
 ```
-src/flows/<flow>/
-  <flow>-flow.tsx           Flow: routes + Routing wiring + per-flow state
-  pages/<page>/
-    <page>-model.ts         State class (Rx fields) + Actions abstract class
-    <page>-controller.ts    Deps type, Routing type, Controller
-    <page>-page.tsx         React view
+src/pages/<page>/
+  <page>-model.ts           State class (Rx fields) + Actions abstract class
+  <page>-controller.ts      Deps type, Routing type, Controller
+  <page>-page.tsx           React view
   sections/<section>/       nested BaseController + model + view (optional)
+src/flows/<flow>/           only for a multi-page sequence with state of its own
+  <flow>-flow.tsx           Flow: its routes + Routing wiring + per-flow state
+  pages/<page>/             as above
+src/app.tsx                 root routes: one <Subtree> per page; a flow mounts as a nested route
 ```
+
+A page is the unit: a model, a controller and a view. A flow is a sequence of pages that
+belong together and share state the rest of the app never sees (sign-in with an OTP step,
+onboarding, a checkout). An app whose pages are independent screens, three tabs and an
+edit form say, has one primary flow and no `flows/` folder: its routes live in `app.tsx`
+and every page takes its `Deps` straight from `AppDeps`.
 
 ### 4.1 Model: state and actions
 
@@ -427,12 +448,14 @@ export class HomeController extends SubtreeController implements HomeActions {
 The admin_panel already does this by hand (`MasterPasswordController(parentSubtree, deps)`);
 the library formalises it.
 
-### 4.5 Flows and routing
+### 4.5 Routes and flows
 
-A Flow wires pages to routes and turns router calls into `Routing` callbacks. With
-`react-router` a flow is a component that renders `<Routes>`; every page is a `<Subtree>`
-whose controller factory receives the flow's deps and a routing object built from
-`useNavigate`.
+Something wires pages to routes and turns router calls into `Routing` callbacks. With
+`react-router` that is a component that renders `<Routes>`; every page is a `<Subtree>`
+whose controller factory receives `pick(deps, ...)` and a routing object built from
+`useNavigate`. In an app with one primary flow that component is `app.tsx`. A Flow is the
+same component for a multi-page sequence with state of its own, mounted as a nested route;
+add one only when the pages share something the rest of the app must not see.
 
 ```tsx
 export function SignInFlow({ deps, routing }: { deps: SignInFlowDeps; routing: SignInFlowRouting }) {
@@ -557,6 +580,7 @@ time, which is the reason `backend-client` reads better than the Dart code.
 | A one-shot signal (navigate, toast) | `RxEvent<T>` + `useRxEvent` (or a `subscribe` in the controller when it can act itself) |
 | Load/mirror data from repositories now and on change | `sync(fn, [repo, ...])` |
 | Side effect only on change | `subscribe(fn, [rx, ...])` |
+| Derived state in a controller | `sync(fn, [rx, ...])` over the fields it reads; `Rx` is a `Listenable`. Not `ReactiveBlock`, which is for tests and code outside a controller |
 | Anything with a handle to release | `autoDispose(() => ...)` |
 | Prevent double-submit from the view | `ref.disableUntilCompleted(action)` |
 | Prevent double-submit in the controller | guard on an `Rx<boolean>` (`isLoading`) |
@@ -609,8 +633,9 @@ The examples show every level: `examples/login/src/core/ops/*.test.ts`,
    returning `AsyncResult` for expected errors.
 4. Add the repository (and any service/API) to `AppDeps` and its construction in
    `createAppDeps()`.
-5. `flows/appointments/`: flow component; per page a model, a controller (with `Deps`,
-   `Routing`), and a page.
+5. `pages/appointments/`: a model, a controller (with `Deps`, `Routing`) and a page; the
+   route in `app.tsx`. A `flows/appointments/` flow component only when the feature is a
+   multi-page sequence with state of its own.
 6. Tests: ops, controller, page.
 
 ---

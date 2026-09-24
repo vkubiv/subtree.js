@@ -1,5 +1,5 @@
 import { describeErrors, hasError } from "operation-result.js";
-import { ReactiveBlock, SubtreeController } from "subtree.js/core";
+import { SubtreeController } from "subtree.js/core";
 import { InvalidCredentials } from "../../../../backend-client";
 import { signIn } from "../../../../core/ops/auth-ops";
 import { validatePassword, validateUsername } from "../../../../core/primitives/credentials";
@@ -23,15 +23,12 @@ export class LoginController extends SubtreeController implements LoginActions {
     this.subtree.put(LoginState, this.state);
     this.subtree.put(LoginActions, this);
 
-    const canSubmit = new ReactiveBlock((ref) => {
-      const username = ref.watch(this.state.username);
-      const password = ref.watch(this.state.password);
+    this.sync(() => {
       this.state.canSubmit.value =
-        validateUsername(username) === null &&
-        validatePassword(password) === null &&
-        !ref.watch(this.state.isSubmitting);
-    });
-    this.autoDispose(() => canSubmit.dispose());
+        validateUsername(this.state.username.value) === null &&
+        validatePassword(this.state.password.value) === null &&
+        !this.state.isSubmitting.value;
+    }, [this.state.username, this.state.password, this.state.isSubmitting]);
   }
 
   onUsernameChanged = (value: string) => {

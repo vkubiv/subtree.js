@@ -1,5 +1,5 @@
 import { describeErrors, hasError } from "operation-result.js";
-import { ReactiveBlock, SubtreeController } from "subtree.js/core";
+import { SubtreeController } from "subtree.js/core";
 import { InvalidCredentials } from "../../../../backend-client";
 import { reauthenticate, signOut } from "../../../../core/ops/auth-ops";
 import { validatePassword } from "../../../../core/primitives/credentials";
@@ -31,11 +31,10 @@ export class SessionExpiredController extends SubtreeController implements Sessi
       this.state.username.value = deps.loggedinUser.username;
     }, [deps.loggedinUser]);
 
-    const canSubmit = new ReactiveBlock((ref) => {
+    this.sync(() => {
       this.state.canSubmit.value =
-        validatePassword(ref.watch(this.state.password)) === null && !ref.watch(this.state.isSubmitting);
-    });
-    this.autoDispose(() => canSubmit.dispose());
+        validatePassword(this.state.password.value) === null && !this.state.isSubmitting.value;
+    }, [this.state.password, this.state.isSubmitting]);
   }
 
   onPasswordChanged = (value: string) => {

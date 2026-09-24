@@ -45,7 +45,7 @@ src/
 | Deps by structural typing | `AppDeps` at the root, `Pick<...>` per flow and page, `pick()` at each boundary. |
 | Navigation is a callback | Every controller takes a `Routing` object; only flows call `useNavigate`. |
 | Sections | `HomeController` owns `ProfileSectionController` (a `BaseController` registered into the page's subtree). |
-| Derived state | `ReactiveBlock` computes `canSubmit` in the login and session-expired controllers. |
+| Derived state | `sync` over the `Rx` fields computes `canSubmit` in the login and session-expired controllers. |
 | Events | `LoginState.failed` is an `RxEvent`; the page shows it with `useRxEvent`. |
 | Route identity | Sibling routes give their `<Subtree>` a `key` (see `sign-in-flow.tsx`). |
 

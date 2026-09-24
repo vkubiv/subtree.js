@@ -1,4 +1,4 @@
-import { ReactiveBlock, SubtreeController } from "subtree.js/core";
+import { SubtreeController } from "subtree.js/core";
 import { createNote, getNote, updateNote } from "../../../../core/ops/note-ops";
 import type { NotesFlowDeps } from "../../notes-flow";
 import { EditNoteActions, EditNoteState } from "./edit-note-model";
@@ -27,11 +27,9 @@ export class EditNoteController extends SubtreeController implements EditNoteAct
     this.subtree.put(EditNoteState, this.state);
     this.subtree.put(EditNoteActions, this);
 
-    const canSave = new ReactiveBlock((ref) => {
-      this.state.canSave.value =
-        ref.watch(this.state.status) === "ready" && ref.watch(this.state.title).trim() !== "";
-    });
-    this.autoDispose(() => canSave.dispose());
+    this.sync(() => {
+      this.state.canSave.value = this.state.status.value === "ready" && this.state.title.value.trim() !== "";
+    }, [this.state.status, this.state.title]);
 
     if (params.noteId === null) this.state.status.value = "ready";
     else void this.#load(params.noteId);

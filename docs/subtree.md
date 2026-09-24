@@ -95,13 +95,23 @@ so a view can watch it. `readWatchable(w)` reads a `Watchable` outside a view (t
 ### `ReactiveBlock`
 
 Runs a function now and again whenever a value it `watch`ed changes. The non-React
-observer, for derived state in controllers and for tests.
+observer, for tests and for code that has no controller.
+
+Inside a controller, derived state is `sync` over the `Rx` fields it reads. `Rx` is a
+`Listenable`, so the fields go in the dependency list like a repository, the subscription
+is disposed with the controller, and the list names every input:
 
 ```ts
+// in a controller
+this.sync(() => {
+  this.state.canSubmit.value = this.state.email.value !== "" && this.state.agreed.value;
+}, [this.state.email, this.state.agreed]);
+
+// outside one (a test)
 const block = new ReactiveBlock((ref) => {
-  this.state.canSubmit.value = ref.watch(this.state.email) !== "" && ref.watch(this.state.agreed);
+  seen.push(ref.watch(state.email));
 });
-this.autoDispose(() => block.dispose());
+block.dispose();
 ```
 
 ## Controllers
@@ -290,7 +300,8 @@ export function CounterPage() {
 | A one-shot signal (navigate, toast) | `RxEvent<T>` + `useRxEvent`, or `subscribe` on an `Rx<boolean>` |
 | Load or mirror repository data now and on change | `sync(fn, [repo])` |
 | Side effect only on change | `subscribe(fn, [rx])` |
-| Derived state in a controller | `ReactiveBlock` |
+| Derived state in a controller | `sync(fn, [rx, ...])` over the fields it reads |
+| Derived state outside a controller (tests) | `ReactiveBlock` |
 | Anything with a handle to release | `autoDispose(() => ...)` |
 | A child controller | `own(new SectionController(this.subtree, deps))` |
 | Prevent double submit from the view | `ref.disableUntilCompleted(action)` |

@@ -1,5 +1,20 @@
 # Changelog
 
+## Repository (2026-09-24)
+
+- Docs and examples: derived state in a controller is `sync` over the `Rx` fields it
+  reads, not `ReactiveBlock` (kept for tests and code outside a controller). Ops declare
+  `client` and `authHandler` as separate fields, never an `Api` bundle or a `withSession`
+  helper. Pages live in `src/pages/`; `src/flows/` only for a multi-page sequence with
+  state of its own.
+
+## trunk.js 1.0.0-alpha.1 (unreleased)
+
+- `AuthHandlerOptions.isAuthFailure`: which error means "not authenticated", for a backend
+  client with its own 401 class. The default is unchanged (`instanceof ApiNotAuthorized`).
+- `callApi` states its contract: the function is re-run from the start on retry, so one
+  call per `callApi`; a stream takes the provider's `authorizeCall()` directly.
+
 ## Repository (2026-09-23)
 
 - `examples/login` and `examples/notes`: ports of the Flutter `full_examples` with ops,

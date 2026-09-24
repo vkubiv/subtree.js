@@ -94,6 +94,25 @@ describe("AuthHandler.callApi", () => {
     expect(s.api).toHaveBeenCalledTimes(1);
   });
 
+  it("recognises the client's own auth error through isAuthFailure", async () => {
+    class TransportUnauthorized extends Error {}
+    const pending: PendingCall[] = [];
+    const handler = new AuthHandler<Ctx>({
+      provider: { authorizeCall: async () => ({ token: "t" }) },
+      onAuthFailure: (call) => pending.push(call),
+      isAuthFailure: (e) => e instanceof TransportUnauthorized,
+    });
+    const promise = handler.callApi(async () => fail(new TransportUnauthorized("401")));
+    await flush();
+    expect(pending).toHaveLength(1);
+    pending[0]!.cancel();
+    expect((await promise).ok).toBe(false);
+    // the default predicate no longer applies
+    const r = await handler.callApi(async () => fail(new ApiNotAuthorized()));
+    expect(hasError(r, ApiNotAuthorized)).toBe(true);
+    expect(pending).toHaveLength(1);
+  });
+
   it("logout forwards to onLogout", () => {
     const s = setup();
     s.handler.logout();

@@ -85,7 +85,7 @@ export function CounterPage() {
 | `SubtreeController` | `BaseController` plus `subtree: SubtreeModel`. One per page. |
 | `SubtreeModel` | `put(Token, instance)` (throws on duplicate), `get(Token)` (throws on miss), `has(Token)`. |
 | `token<T>(name)` | A typed symbol token for interfaces without a class. |
-| `ReactiveBlock` | Runs a function now and on change of what it `watch`ed. Derived state in controllers and tests. |
+| `ReactiveBlock` | Runs a function now and on change of what it `watch`ed. For tests and code outside a controller; a controller derives state with `sync`. |
 | `Watchable<T>`, `View<S>` | What views see: an `Rx` without `.value`; a state object with every reactive field mapped. Type-level only. |
 | `watchable(vl)`, `readWatchable(w)` | Adapt a foreign `ValueListenable`; read a `Watchable` outside a view. |
 

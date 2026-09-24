@@ -1,6 +1,6 @@
 {
   "name": "trunk.js",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "Application structure for subtree.js apps: typed dependency narrowing (pick), AuthHandler with retry-after-reauth, and the Deps/Routing/Flow conventions.",
   "keywords": [
     "subtree",

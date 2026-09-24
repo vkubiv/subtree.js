@@ -8,14 +8,15 @@ export interface ReactiveRef {
 
 /**
  * Runs a function now and again whenever any value it `watch`ed changes.
- * The non-React counterpart of an observer: useful in controllers and tests for
- * derived state.
+ * The non-React counterpart of an observer, for tests and for code that has no
+ * controller. Inside a controller, derive state with `sync` over the `Rx`
+ * fields instead: it is disposed with the controller and names what it reads.
  *
  * ```ts
  * const block = new ReactiveBlock((ref) => {
- *   state.canSubmit.value = ref.watch(state.email) !== "" && ref.watch(state.agreed);
+ *   seen.push(ref.watch(state.email));
  * });
- * this.autoDispose(() => block.dispose());
+ * block.dispose();
  * ```
  */
 export class ReactiveBlock implements ReactiveRef {

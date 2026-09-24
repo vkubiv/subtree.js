@@ -19,9 +19,14 @@ export interface PendingCall {
 
 export interface AuthHandlerOptions<Ctx> {
   provider: AuthContextProvider<Ctx>;
-  /** Called when a call failed with `ApiNotAuthorized`. Drive re-auth, then `call.retry()` or `call.cancel()`. */
+  /** Called when a call failed with an auth error. Drive re-auth, then `call.retry()` or `call.cancel()`. */
   onAuthFailure: (call: PendingCall) => void;
   onLogout?: () => void;
+  /**
+   * Which error in a failed result means "not authenticated". Defaults to
+   * `instanceof ApiNotAuthorized`; set it when the backend client has its own class.
+   */
+  isAuthFailure?: (error: unknown) => boolean;
 }
 
 /**
@@ -78,7 +83,8 @@ export class AuthenticatedCall<Ctx, T, E> implements PendingCall {
   }
 
   #isAuthFailure(result: Result<T, E>): boolean {
-    return !result.ok && result.errors.some((e) => e instanceof ApiNotAuthorized);
+    const is = this.#options.isAuthFailure ?? ((e: unknown) => e instanceof ApiNotAuthorized);
+    return !result.ok && result.errors.some(is);
   }
 
   #settle(result: Result<T, E>): void {
@@ -89,13 +95,18 @@ export class AuthenticatedCall<Ctx, T, E> implements PendingCall {
 
 /**
  * Wraps authenticated API calls. `callApi` injects the context from the provider;
- * when the result carries an `ApiNotAuthorized` error it invokes `onAuthFailure` with a
+ * when the result carries an auth error it invokes `onAuthFailure` with a
  * `PendingCall` and resolves the caller's promise only after `retry()` succeeds
  * or `cancel()` hands back the failed result.
  *
  * ```ts
  * const r = await authHandler.callApi((ctx) => api.user.me(ctx));
  * ```
+ *
+ * The function is re-run from the start on retry, so it is one call, or a block
+ * that is safe to replay. Several writes go in several `callApi`s, each retried
+ * on its own. A stream, or anything that is not a `Result`, cannot be retried
+ * this way: take the context from the provider's `authorizeCall()` directly.
  */
 export class AuthHandler<Ctx> {
   readonly #options: AuthHandlerOptions<Ctx>;

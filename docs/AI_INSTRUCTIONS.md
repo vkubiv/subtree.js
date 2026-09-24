@@ -19,8 +19,9 @@ Which flow is the reference implementation to copy?_
 Two layers plus a client for the backend. The **core layer** (`src/core/`) has no React:
 repositories store state and notify, ops hold the business logic, services run things
 over time, the session lives in `LoggedinUser` and `AuthHandler`. The **UI layer**
-(`src/flows/`) is flows, pages and sections built on `subtree.js`: a page is a model
-(state + actions), a controller and a view; a flow wires pages to routes. The
+(`src/pages/`, plus `src/flows/` for multi-page sequences) is pages and sections built on
+`subtree.js`: a page is a model (state + actions), a controller and a view; `app.tsx`
+wires pages to routes, and a flow component does the same for a sequence of its own. The
 **backend-client** returns `Result<T, E>` for every expected failure. Dependencies are
 plain objects narrowed by `Pick` and `pick()`; navigation is a `Routing` object of
 callbacks; expected failures are values and unexpected ones are thrown.
@@ -35,17 +36,17 @@ src/
     ops/            business logic: exported functions, one module per feature
     services/       long-lived stateful objects (pollers, sockets)
     auth/           LoggedinUser, AuthStorage, PendingReauth, flow-state objects
-  flows/
-    <flow>/
-      <flow>-flow.tsx           routes + Routing wiring + per-flow state
-      pages/<page>/
-        <page>-model.ts         State class (Rx fields) + Actions abstract class
-        <page>-controller.ts    Deps type, Routing type, Controller
-        <page>-page.tsx         React view
-        <page>-controller.test.ts, <page>-page.test.tsx
-      sections/<section>/       nested BaseController + model + view (optional)
+  pages/<page>/
+    <page>-model.ts           State class (Rx fields) + Actions abstract class
+    <page>-controller.ts      Deps type, Routing type, Controller
+    <page>-page.tsx           React view
+    <page>-controller.test.ts, <page>-page.test.tsx
+    sections/<section>/       nested BaseController + model + view (optional)
+  flows/<flow>/     only for a multi-page sequence with state of its own (sign-in, onboarding)
+    <flow>-flow.tsx           its routes + Routing wiring + per-flow state
+    pages/<page>/             as above
   app-deps.ts       AppDeps interface + createAppDeps()
-  app.tsx           root routes
+  app.tsx           root routes: one <Subtree> per page; a flow mounts as a nested route
 backend-client/     separate package (or src/backend-client/): transport, API groups, models
 ```
 
@@ -74,12 +75,20 @@ export async function loadProfile(o: {
 Return `AsyncResult<T, E>` when the caller must handle a known failure, `Promise<void>`
 for best-effort work that reports through a repository. Only ops mutate repositories.
 
+The client (or one API group) and `authHandler` are separate named fields like every other
+dependency. Do not bundle them into an `Api` object, and do not hide `callApi` behind a
+`withSession` helper: the field an op declares says whether it retries on a 401
+(`authHandler`), handles auth itself (`loggedinUser`), or reads a stream (`loggedinUser`
+too, since a stream is not a `Result`).
+
 **Session.** `LoggedinUser extends ChangeNotifier` implements
 `AuthContextProvider<ApiContext>`; `AuthHandler.callApi(ctx => api.x(ctx))` injects the
-context and, on `ApiNotAuthorized`, hands a `PendingCall` to `onAuthFailure`. Keep parked
+context and, on an auth error, hands a `PendingCall` to `onAuthFailure`. Keep parked
 calls in a `PendingReauth` repository; the re-auth page calls `retryAll()` or
-`cancelAll()`. Use `loggedinUser.authorizeCall()` directly only for background work
-that handles a 401 itself.
+`cancelAll()`. The function given to `callApi` is re-run from the start on retry: one
+call per `callApi`, several writes in several `callApi`s. Set `isAuthFailure` when the
+backend client has its own 401 class. Use `loggedinUser.authorizeCall()` directly only for
+background work that handles a 401 itself, and for streams.
 
 ## UI layer rules
 
@@ -98,8 +107,8 @@ export abstract class OtpActions {
 }
 ```
 
-**Controller.** Three declarations per page: `Deps` (a `Pick` of the flow's deps, plus
-explicit per-flow objects), `Routing` (callbacks), `Controller`.
+**Controller.** Three declarations per page: `Deps` (a `Pick` of `AppDeps`, or of the
+flow's deps plus explicit per-flow objects), `Routing` (callbacks), `Controller`.
 
 ```ts
 export type OtpDeps = Pick<SignInFlowDeps, "authApi" | "loggedinUser"> & { signingInUser: SigningInUser };
@@ -137,8 +146,9 @@ Rules:
 - Actions are arrow properties, so views can pass them as bare callbacks.
 - Timers, sockets and other handles go through `autoDispose`; child section controllers
   through `own(child)`.
-- Derived state: `new ReactiveBlock((ref) => { state.canSubmit.value = ... })`, disposed
-  with `autoDispose`.
+- Derived state: `this.sync(() => { this.state.canSubmit.value = ... }, [this.state.email,
+  this.state.agreed])`. `Rx` fields are `Listenable`, so they go in the list like a
+  repository; list every field the callback reads. Not `ReactiveBlock`.
 
 **View.** Resolve with `useSubtree(Token)`, read with `observer.watch(rx)`, act through
 actions. `useSubtree` returns `View<S>`: reactive fields have no `.value`, so a view
@@ -167,8 +177,11 @@ export function OtpPage() {
 BaseController` takes the page's `subtree` in its constructor and `put`s its own state
 and actions there; the page controller creates it with `this.own(new TopBarController(this.subtree, deps))`.
 
-**Flows.** A flow component renders `<Routes>`; each page is a `<Subtree>` whose factory
-receives `pick(deps, ...)` and a routing object built from `useNavigate`.
+**Routes and flows.** `app.tsx` renders `<Routes>`; each page is a `<Subtree>` whose
+factory receives `pick(deps, ...)` and a routing object built from `useNavigate`. A flow
+component does the same for a multi-page sequence with state of its own (sign-in with
+OTP, onboarding) and mounts as a nested route. An app whose pages are independent screens
+has one primary flow and no `flows/` folder.
 
 ```tsx
 <Route index element={
@@ -186,9 +199,10 @@ receives `pick(deps, ...)` and a routing object built from `useNavigate`.
   explicitly to the pages that need them.
 - Modals are sections or child `<Subtree>`s, not routes, unless deep-linkable.
 
-**Dependencies.** `AppDeps` is one interface; a flow declares `Pick<AppDeps, ...>`; a
-page declares `Pick<FlowDeps, ...> & { explicitExtra }`. `pick()` from `trunk.js` narrows
-at runtime at each boundary. No container.
+**Dependencies.** `AppDeps` is one interface; a page declares `Pick<AppDeps, ...>`. Inside
+a flow, the flow declares `Pick<AppDeps, ...>` and its pages
+`Pick<FlowDeps, ...> & { explicitExtra }`. `pick()` from `trunk.js` narrows at runtime at
+each boundary. No container.
 
 ## Results
 
@@ -214,9 +228,9 @@ async function login(...): AsyncResult<Session, InvalidCredentials | EmailNotCon
 | Ops | Real repositories, fake API returning `ok`/`fail`. No React. | Repository state, returned `Result`. |
 | Controller | `new XController(fakeDeps, { onDone: vi.fn() })`; drive actions. No React. | `state.x.value`, routing spies. |
 | Page | `render(<SubtreeProvider model={model}>...)` with a real state and mocked actions. | DOM after `act(() => { state.x.value = ... })`; action mocks after events. |
-| Flow | The app in a `MemoryRouter` with real deps, StrictMode on. | The DOM through a whole scenario. |
+| App / flow | The app in a `MemoryRouter` with real deps, StrictMode on. | The DOM through a whole scenario. |
 
-Flow tests: after `await screen.findByRole("heading", ...)`, run `await act(flush)` before
+App and flow tests: after `await screen.findByRole("heading", ...)`, run `await act(flush)` before
 typing (StrictMode replaces the first controller from an effect), and wrap `fireEvent`
 in `act` so controller writes reach the DOM synchronously. `sync` runs its first pass
 in a microtask: `await flush()` (a `setTimeout(0)`) before asserting on mirrored state.
@@ -228,9 +242,10 @@ in a microtask: `await flush()` (a `setTimeout(0)`) before asserting on mirrored
 3. `core/ops/appointment-ops.ts`: functions taking `{ repository, api, authHandler }`,
    returning `AsyncResult` for expected errors. Tests with fakes.
 4. Add the repository (and any API group or service) to `AppDeps` and `createAppDeps()`.
-5. `flows/appointments/`: flow component; per page a model, a controller (`Deps`,
-   `Routing`) and a page; `key` on each route's `<Subtree>`.
-6. Tests: controller, page, and the flow scenario.
+5. `pages/appointments/`: a model, a controller (`Deps`, `Routing`) and a page; the
+   route in `app.tsx` with a `key` on its `<Subtree>`. A `flows/appointments/` flow
+   component only when the feature is a multi-page sequence with state of its own.
+6. Tests: controller, page, and the app scenario.
 
 ## Do not
 
@@ -242,3 +257,8 @@ in a microtask: `await flush()` (a `setTimeout(0)`) before asserting on mirrored
 - Do not use auto-tracking signal libraries next to `Rx`; one model.
 - Do not throw expected failures or return `Result` for unexpected ones.
 - Do not build a dependency container; `Pick` and `pick()` are enough.
+- Do not bundle the client and `authHandler` into an `Api` object or a `withSession`
+  helper; ops declare them as fields.
+- Do not use `ReactiveBlock` in a controller; derive state with `sync` over the `Rx`
+  fields.
+- Do not add a `flows/` folder for a single primary flow; pages go under `pages/`.
