@@ -152,5 +152,9 @@ act(() => { state.countdown.value = 0; });
 
 The package is one part of a larger application structure (core layer with
 repositories, ops and services; UI layer with flows, pages and sections; typed results;
-an auth handler). See `docs/ARCHITECTURE.md` in the repository, and the companion
-packages `trunk.js` and `operation-result.js`.
+an auth handler). In the repository:
+
+- [`docs/subtree.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/subtree.md): the full reference of this package.
+- [`docs/ARCHITECTURE.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/ARCHITECTURE.md): the architecture; [`docs/AI_INSTRUCTIONS.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/AI_INSTRUCTIONS.md): the condensed manual for an app's `CLAUDE.md`.
+- [`examples/login`](https://github.com/vkubiv/subtree.js/tree/master/examples/login) and [`examples/notes`](https://github.com/vkubiv/subtree.js/tree/master/examples/notes): complete apps with tests.
+- Companion packages `trunk.js` (`pick`, `AuthHandler`, `AppError`) and `operation-result.js` (`Result<T, E>`).

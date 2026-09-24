@@ -6,8 +6,16 @@ TypeScript/React counterpart of the architecture implemented in Flutter in `btb-
 and `operation_result`. It is written so that a new app (or an AI agent working in one)
 can follow it without reading the Flutter sources.
 
-Status: **target architecture**. The libraries that support it are planned in
-[PLAN.md](./PLAN.md). Where the current `subtree.js` differs, the plan says so.
+Status: **implemented** by `subtree.js`, `trunk.js` and `operation-result.js` in this
+repository, and exercised by [`examples/login`](../examples/login) and
+[`examples/notes`](../examples/notes). Companion documents:
+
+* [`AI_INSTRUCTIONS.md`](./AI_INSTRUCTIONS.md): the condensed operating manual to copy
+  into an app's `CLAUDE.md`.
+* [`subtree.md`](./subtree.md) and [`operation-result.md`](./operation-result.md):
+  self-contained library references; the [`trunk.js` README](../packages/trunk/README.md)
+  covers `pick`, `AuthHandler` and the error base classes.
+* [`PLAN.md`](./PLAN.md): analysis, decisions and status.
 
 ---
 
@@ -581,8 +589,15 @@ time, which is the reason `backend-client` reads better than the Dart code.
 * **Views**: render inside `<SubtreeProvider model={model}>` where `model` is a
   `SubtreeModel` with a real `State` and a mocked `Actions`; set `state.x.value` and assert
   the DOM; fire events and assert the mock was called.
-* **Flows**: render the flow with a `MemoryRouter`, fake deps and spy routing.
+* **Flows**: render the app or flow with a `MemoryRouter` and real or fake deps, StrictMode
+  on. After a page appears, `await act(flush)` before typing (StrictMode replaces the
+  first controller from an effect), and wrap `fireEvent` in `act` so controller writes
+  reach the DOM before the next step. `sync` runs its first pass in a microtask, so
+  `await flush()` before asserting on mirrored state.
 * **Backend**: e2e through `backend-client` only.
+
+The examples show every level: `examples/login/src/core/ops/*.test.ts`,
+`**/*-controller.test.ts`, `**/*-page.test.tsx`, `app.test.tsx`.
 
 ---
 

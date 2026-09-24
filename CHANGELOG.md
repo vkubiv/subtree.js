@@ -1,5 +1,12 @@
 # Changelog
 
+## Repository (2026-09-23)
+
+- `examples/login` and `examples/notes`: ports of the Flutter `full_examples` with ops,
+  controller, page and flow tests.
+- `docs/AI_INSTRUCTIONS.md` (the manual for an app's `CLAUDE.md`), `docs/subtree.md` and
+  `docs/operation-result.md` (library references), next to `docs/ARCHITECTURE.md`.
+
 ## subtree.js 2.0.0-alpha.0 (2026-09-23)
 
 Rewrite as a monorepo package with `core` and `react` entry points. Breaking.
@@ -10,7 +17,9 @@ Rewrite as a monorepo package with `core` and `react` entry points. Breaking.
   `SubtreeController` extends it. `sync`/`subscribe` return a `Subscription`
   (`cancel()`, `ready`).
 - `SubtreeModel.put` throws on duplicates; `get` no longer treats falsy instances as
-  missing; `has` added; string identifiers replaced by `token<T>()`.
+  missing and its error names the two usual causes (not `put`, or a `<Subtree>` reused
+  across sibling routes without a `key`); `has` added; string identifiers replaced by
+  `token<T>()`.
 - `<Subtree>` no longer disposes the controller on parent re-render (bug), gains a
   `deps` prop, and survives React StrictMode.
 - `useObserver` subscribes in an effect instead of during render; `disableUntilCompleted`

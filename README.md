@@ -12,6 +12,8 @@ React, the counterpart of the Flutter stack `subtree` + `immutable_di` + `operat
 Docs:
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the architecture the packages enable.
+- [docs/AI_INSTRUCTIONS.md](docs/AI_INSTRUCTIONS.md): the condensed manual to copy into an app's `CLAUDE.md`.
+- [docs/subtree.md](docs/subtree.md), [docs/operation-result.md](docs/operation-result.md): library references. `trunk.js` is documented in its [README](packages/trunk/README.md).
 - [docs/PLAN.md](docs/PLAN.md): analysis of the previous port, design decisions, roadmap and status.
 
 Examples (ports of the Flutter `subtree/full_examples`, each a Vite app with tests at

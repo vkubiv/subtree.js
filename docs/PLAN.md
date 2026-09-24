@@ -315,7 +315,13 @@ in `npm run check`. What the examples taught, and what changed because of them:
 * The examples compile the packages from source through aliases (`vite.config.ts`,
   `tsconfig.json` `paths`), so they never run against a stale `dist`.
 
-Phases 5 to 7 are not started.
+**Phase 5 is implemented** (2026-09-23) except publishing: `docs/AI_INSTRUCTIONS.md`,
+`docs/subtree.md`, `docs/operation-result.md`, cross-links from the architecture doc,
+the package READMEs and the root README. Publishing `subtree.js@2.0.0` and
+`operation-result.js@1.0.0` waits for the admin_panel migration (Phase 6) to confirm
+the API; the packages stay at their alpha versions until then.
+
+Phases 6 and 7 are not started.
 
 ### Phase 0: repository setup
 
@@ -373,13 +379,16 @@ Phases 5 to 7 are not started.
 * Both examples are the acceptance test of the API: if something is awkward there, change
   the library, not the example. See the status note above for what came out of it.
 
-### Phase 5: documentation for humans and agents
+### Phase 5: documentation for humans and agents (done, publishing deferred)
 
 * `docs/AI_INSTRUCTIONS.md`: the `CLAUDE.md` section for apps (the btb-neo one translated
   to TS, referencing `ARCHITECTURE.md`).
-* Cross-links: ARCHITECTURE, subtree reference, operation-result.js reference, examples.
-* CHANGELOG entries; publish `subtree.js@2.0.0` (breaking: `Rx.value`, `Subtree` semantics,
-  ESM) and `operation-result.js@1.0.0`.
+* `docs/subtree.md` and `docs/operation-result.md`: self-contained references, the
+  counterparts of `btb-neo/doc/architecture/*.md`.
+* Cross-links: ARCHITECTURE, references, package READMEs, examples.
+* CHANGELOG entries. Publishing `subtree.js@2.0.0` (breaking: `Rx.value`, `Subtree`
+  semantics, ESM) and `operation-result.js@1.0.0` is deferred until Phase 6 has
+  validated the API on a real app.
 
 ### Phase 6: migrate `admin_panel` (validation on a real app)
 

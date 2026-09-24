@@ -88,6 +88,11 @@ routing.onSignedIn(r.value);
 **Wrapping a throwing API.** Catch only what you can map to a declared error; rethrow the
 rest.
 
+The full pattern catalogue, with the Dart original next to it, is
+[`docs/operation-result.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/operation-result.md)
+in the repository; [`examples/login`](https://github.com/vkubiv/subtree.js/tree/master/examples/login)
+uses it end to end.
+
 ## Differences from the Dart package
 
 | Dart | TypeScript |

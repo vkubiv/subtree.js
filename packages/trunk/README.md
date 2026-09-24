@@ -72,4 +72,9 @@ Two ways to call the backend, both valid:
 - **Flow**: the component (or class) that wires pages to routes, builds each page's deps
   with `pick` and its routing from the router, and owns per-flow state.
 
-The full description is in `docs/ARCHITECTURE.md` of the repository.
+The full description is in
+[`docs/ARCHITECTURE.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/ARCHITECTURE.md)
+of the repository; [`docs/AI_INSTRUCTIONS.md`](https://github.com/vkubiv/subtree.js/blob/master/docs/AI_INSTRUCTIONS.md)
+is the condensed manual for an app's `CLAUDE.md`, and
+[`examples/login`](https://github.com/vkubiv/subtree.js/tree/master/examples/login) shows
+`AuthHandler` with a re-authentication page and parked calls.
